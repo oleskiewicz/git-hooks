@@ -1,15 +1,17 @@
-#!/bin/sh -ex
+#!/bin/sh -e
 
-dst="/var/www/html/pub.oleskiewi.cz/releases"
+_pack() {
+	git archive --format tar --prefix "$1/" "$1" | gzip -9 > "$2"
+}
+
+src="$(basename $(pwd) '.git')"
+dst="/var/www/pub.oleskiewi.cz/src/$src"
 mkdir -p "$dst"
+
+_pack "HEAD" "${dst}/${src}-HEAD.tar.gz"
 
 for t in $(git tag -l)
 do
-	f="$dst/$(basename $(pwd) '.git')-${t}.tar.gz"
-	[ -f "$f" ] ||     \
-	git archive        \
-		--format tar   \
-		--prefix "$t/" \
-		"${t}" |       \
-	gzip -9 > "$f"
+	f="${dst}/${src}-${t}.tar.gz"
+	[ -f "$f" ] || _pack "$t" "$f"
 done
